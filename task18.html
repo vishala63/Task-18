@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Form with Local Storage</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f3f3f3;
+      padding: 20px;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .error {
+      color: red;
+      font-size: 13px;
+    }
+
+    #preview {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    #preview img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: darkgreen;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 style="text-align:center;">Form with Local Storage & File Preview</h2>
+
+  <form id="myForm">
+    <label>Name</label>
+    <input type="text" id="name">
+    <div class="error" id="nameError"></div>
+
+    <label>Email</label>
+    <input type="text" id="email">
+    <div class="error" id="emailError"></div>
+
+    <label>Contact</label>
+    <input type="text" id="contact">
+    <div class="error" id="contactError"></div>
+
+    <label>Age</label>
+    <input type="number" id="age">
+    <div class="error" id="ageError"></div>
+
+    <label>Designation</label>
+    <input type="text" id="designation">
+    <div class="error" id="designationError"></div>
+
+    <label>Date of Birth</label>
+    <input type="date" id="dob">
+    <div class="error" id="dobError"></div>
+
+    <label>Select Multiple Files</label>
+    <input type="file" id="files" multiple accept="image/*">
+    <div id="preview"></div>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("myForm");
+    const preview = document.getElementById("preview");
+    const fileInput = document.getElementById("files");
+
+    // Load saved data on page load
+    window.onload = () => {
+      const savedData = JSON.parse(localStorage.getItem("formData"));
+      if (savedData) {
+        document.getElementById("name").value = savedData.name || "";
+        document.getElementById("email").value = savedData.email || "";
+        document.getElementById("contact").value = savedData.contact || "";
+        document.getElementById("age").value = savedData.age || "";
+        document.getElementById("designation").value = savedData.designation || "";
+        document.getElementById("dob").value = savedData.dob || "";
+      }
+    };
+
+    // Show preview of image files
+    fileInput.addEventListener("change", () => {
+      preview.innerHTML = "";
+      const files = fileInput.files;
+      for (let file of files) {
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            preview.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    // Handle form submit
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+      document.querySelectorAll(".error").forEach(el => el.textContent = "");
+
+      let valid = true;
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const contact = document.getElementById("contact").value.trim();
+      const age = document.getElementById("age").value.trim();
+      const designation = document.getElementById("designation").value.trim();
+      const dob = document.getElementById("dob").value;
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const contactPattern = /^[6-9]\d{9}$/;
+
+      if (name === "") {
+        document.getElementById("nameError").textContent = "Name is required";
+        valid = false;
+      }
+
+      if (!emailPattern.test(email)) {
+        document.getElementById("emailError").textContent = "Invalid email";
+        valid = false;
+      }
+
+      if (!contactPattern.test(contact)) {
+        document.getElementById("contactError").textContent = "Invalid contact number";
+        valid = false;
+      }
+
+      if (age === "" || age <= 0 || age > 120) {
+        document.getElementById("ageError").textContent = "Enter valid age";
+        valid = false;
+      }
+
+      if (designation === "") {
+        document.getElementById("designationError").textContent = "Designation is required";
+        valid = false;
+      }
+
+      if (dob === "") {
+        document.getElementById("dobError").textContent = "DOB is required";
+        valid = false;
+      }
+
+      if (valid) {
+        const formData = {
+          name, email, contact, age, designation, dob
+        };
+
+        // Save to localStorage
+        localStorage.setItem("formData", JSON.stringify(formData));
+
+        alert("Form submitted and saved to Local Storage!");
+        form.reset();
+        preview.innerHTML = "";
+      }
+    });
+  </script>
+
+</body>
+</html>
